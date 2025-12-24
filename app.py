@@ -9,127 +9,129 @@ import google.generativeai as genai
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="KitKat AI",
-    page_icon="🌸",
+    page_icon="🖤",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# --- 2. NEW BACKGROUND DESIGN ---
+# --- 2. "ACTUAL ONE" DARK THEME CSS ---
 st.markdown("""
     <style>
-        /* IMPORT FONT */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+        /* IMPORT MODERN FONT */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
-        /* --- GLOBAL VARIABLES --- */
         :root {
-            --primary: #FF4081;         /* Bright Pink */
-            --text-dark: #2C3E50;       /* Dark Grey */
+            --bg-color: #050505;        /* Deep Black */
+            --sidebar-bg: #0A0A0A;      /* Slightly lighter black */
+            --card-bg: #141414;         /* Dark Grey Cards */
+            --accent: #FF0055;          /* Neon Pink */
+            --text-main: #FFFFFF;       /* Pure White */
+            --text-sub: #888888;        /* Grey text */
+            --border: 1px solid #333;
         }
 
-        /* FORCE FONT */
         html, body, [class*="css"] {
-            font-family: 'Poppins', sans-serif;
-            color: var(--text-dark) !important;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color) !important;
+            color: var(--text-main) !important;
         }
 
-        /* --- THE NEW BACKGROUND (Gradient) --- */
+        /* --- BACKGROUND --- */
         .stApp {
-            /* Soft Rose to Peach Gradient */
-            background: linear-gradient(135deg, #FFF5F7 0%, #FFE4E1 100%);
-            background-attachment: fixed;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 0%, #1a050a 0%, #050505 60%);
         }
 
-        /* HIDE DEFAULT STREAMLIT ELEMENTS */
-        header[data-testid="stHeader"], footer, [data-testid="stToolbar"] {
-            display: none !important;
-        }
+        /* --- HIDE JUNK --- */
+        header, footer, [data-testid="stToolbar"] { display: none !important; }
 
-        /* --- SIDEBAR (Glass Effect) --- */
+        /* --- SIDEBAR --- */
         section[data-testid="stSidebar"] {
-            background-color: rgba(255, 255, 255, 0.6) !important;
-            backdrop-filter: blur(10px); /* Frosted Glass */
-            border-right: 1px solid rgba(255,255,255,0.5);
+            background-color: var(--sidebar-bg) !important;
+            border-right: 1px solid #222;
         }
         
-        .title-text {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(to right, #FF4081, #FF80AB);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-align: center;
+        /* --- CHAT BUBBLES (MINIMALIST) --- */
+        div[data-testid="stChatMessage"] {
+            background-color: transparent !important;
+            border: none !important;
+            padding: 0 !important;
             margin-bottom: 20px;
         }
 
-        /* --- CHAT BUBBLES --- */
-        div[data-testid="stChatMessage"] {
-            border-radius: 20px !important;
-            padding: 1.5rem !important;
-            border: 1px solid rgba(255,255,255,0.5) !important;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
-        }
-
-        /* USER BUBBLE (Pink Gradient) */
+        /* User Message (Right Aligned, Neon Glow) */
         div[data-testid="stChatMessage"][data-testid*="user"] {
-            background: linear-gradient(135deg, #FF80AB, #FF4081) !important;
-        }
-        /* User Text White */
-        div[data-testid="stChatMessage"][data-testid*="user"] p,
-        div[data-testid="stChatMessage"][data-testid*="user"] div {
-            color: white !important;
+            background-color: var(--card-bg) !important;
+            border: 1px solid #333 !important;
+            border-radius: 12px;
+            padding: 15px !important;
+            border-left: 3px solid var(--accent) !important;
         }
 
-        /* ASSISTANT BUBBLE (White Glass) */
+        /* Assistant Message (Clean) */
         div[data-testid="stChatMessage"][data-testid*="assistant"] {
-            background-color: rgba(255, 255, 255, 0.85) !important;
+            padding-left: 15px !important;
         }
 
-        /* --- INPUT BOX (Floating) --- */
-        .stChatInput {
-            padding-bottom: 30px;
-        }
+        /* FORCE TEXT COLORS */
+        p, span, div { color: #FFFFFF !important; }
+        code { background-color: #222 !important; color: #FF0055 !important; }
+
+        /* --- INPUT BOX (The "Terminal" Look) --- */
+        .stChatInput { padding-bottom: 30px; }
+        
         .stChatInput textarea {
-            background-color: white !important;
-            color: #333 !important;
-            border: 2px solid #FFC1CC !important; /* Soft Pink Border */
-            border-radius: 50px !important;
-            padding: 15px 25px !important;
-            box-shadow: 0 5px 20px rgba(255, 193, 204, 0.4) !important;
+            background-color: #0A0A0A !important;
+            color: #FFFFFF !important;
+            border: 1px solid #333 !important;
+            border-radius: 12px !important;
         }
         .stChatInput textarea:focus {
-            border-color: #FF4081 !important;
-            box-shadow: 0 5px 25px rgba(255, 64, 129, 0.3) !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.2) !important;
         }
 
         /* --- BUTTONS --- */
-        .stButton button {
-            background-color: white !important;
-            color: #FF4081 !important;
-            border: 1px solid #FF4081 !important;
-            border-radius: 15px !important;
-            font-weight: 600 !important;
+        div.stButton > button {
+            background-color: #111 !important;
+            color: #FFF !important;
+            border: 1px solid #333 !important;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
-        .stButton button:hover {
-            background-color: #FF4081 !important;
-            color: white !important;
-            transform: translateY(-2px);
+        div.stButton > button:hover {
+            border-color: var(--accent) !important;
+            color: var(--accent) !important;
+            background-color: #1a1a1a !important;
         }
 
-        /* WELCOME CARD */
-        .welcome-box {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 50px;
+        /* --- WELCOME HERO --- */
+        .hero-container {
             text-align: center;
-            box-shadow: 0 10px 40px rgba(255, 64, 129, 0.1);
-            border: 1px solid white;
-            margin-top: 60px;
+            margin-top: 100px;
+            animation: fadeIn 1s ease;
         }
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            background: linear-gradient(to right, #FFF, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #666 !important;
+            margin-top: 10px;
+        }
+        .accent-text { color: var(--accent) !important; display: inline; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. BACKEND SETUP ---
+# --- 3. BACKEND ---
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 PLUGINS_DIR = BASE_DIR / "plugins"
@@ -138,7 +140,7 @@ CONFIG = {"DATA_DIR": DATA_DIR}
 
 if "messages" not in st.session_state: st.session_state.messages = []
 
-# --- 4. LOAD KEY ---
+# --- 4. KEY LOADING ---
 try:
     key = st.secrets["GEMINI_API_KEY"]
 except:
@@ -164,36 +166,29 @@ plugins = load_plugins()
 
 # --- 6. SIDEBAR ---
 with st.sidebar:
-    st.markdown("<div class='title-text'>KitKat</div>", unsafe_allow_html=True)
-    st.write("---")
-    
-    col1, col2 = st.columns([1,4])
-    with col2:
-        if st.button("🖊️  Write Diary"):
-            st.session_state.mode = "write"
-            st.toast("Mode: Writing Entry", icon="🖊️")
-        
-        if st.button("🔍  Read Diary"):
-            st.session_state.mode = "read"
-            st.toast("Mode: Reading", icon="🔍")
+    st.markdown("<h3 style='color:white; border-bottom:1px solid #333; padding-bottom:10px;'>/// MENU</h3>", unsafe_allow_html=True)
+    st.write("")
+    if st.button("New Entry"):
+        st.session_state.mode = "write"
+        st.toast("System: Ready for input", icon="⚫")
+    if st.button("Access Archives"):
+        st.session_state.mode = "read"
+        st.toast("System: Searching database", icon="⚫")
+    if st.button("Purge Logs"):
+        st.session_state.messages = []
+        st.rerun()
 
-        if st.button("🧼  Clear Chat"):
-            st.session_state.messages = []
-            st.rerun()
-
-# --- 7. AI ENGINE ---
+# --- 7. AI ENGINE (STREAMING) ---
 def stream_ai_response(prompt):
     if not key:
-        yield "⚠️ API Key missing."
+        yield "System Error: API Key missing."
         return
 
     genai.configure(api_key=key)
-    
-    # Using 'gemini-flash-latest' to ensure connection works
-    models_to_try = ["gemini-flash-latest", "gemini-pro"]
+    models = ["gemini-flash-latest", "gemini-pro"] # Connection fallback
     
     active_model = None
-    for m in models_to_try:
+    for m in models:
         try:
             test_model = genai.GenerativeModel(m)
             active_model = test_model
@@ -201,7 +196,7 @@ def stream_ai_response(prompt):
         except: continue
     
     if not active_model:
-        yield "⚠️ Connection Error. Please refresh."
+        yield "Connection Failed: No models available."
         return
 
     try:
@@ -211,19 +206,18 @@ def stream_ai_response(prompt):
                 yield char
                 time.sleep(0.005)
     except Exception as e:
-        yield f"⚠️ Error: {str(e)}"
+        yield f"Runtime Error: {str(e)}"
 
-# --- 8. MAIN UI ---
+# --- 8. UI RENDER ---
 
-# Welcome Screen
+# Hero Screen (If empty)
 if not st.session_state.messages:
     st.markdown("""
-        <div class="welcome-box">
-            <h1 style="color: #FF4081; font-size: 3.5rem;">🌸 Hello!</h1>
-            <p style="font-size: 1.3rem; color: #555;">
-                I'm <b>KitKat</b>.
-                <br>Your world, my words.
-            </p>
+        <div class="hero-container">
+            <div class="hero-title">KitKat <span class="accent-text">AI</span></div>
+            <div class="hero-subtitle">Personal Neural Interface v5.0</div>
+            <br><br>
+            <p style="color:#444 !important; font-size: 0.9rem;">ENCRYPTED // SECURE // ONLINE</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -232,8 +226,8 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Input Handling
-if prompt := st.chat_input("Type something..."):
+# Input
+if prompt := st.chat_input("Enter command or message..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -241,7 +235,6 @@ if prompt := st.chat_input("Type something..."):
     response = ""
     mode = getattr(st.session_state, 'mode', None)
 
-    # Logic
     if mode == "write" and 'note' in plugins:
         response = plugins['note'](CONFIG, f"Entry :: {prompt}")
         st.session_state.mode = None
