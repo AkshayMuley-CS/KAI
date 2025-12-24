@@ -1,0 +1,6 @@
+google-generativeai
+python-dotenv
+psutil
+pycryptodome
+requests
+colorama
