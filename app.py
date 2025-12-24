@@ -9,12 +9,12 @@ import google.generativeai as genai
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="KitKat AI",
-    page_icon="🍭",
+    page_icon="🌸",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. "CANDY POP" THEME (High Contrast & Bright) ---
+# --- 2. NEW BACKGROUND DESIGN ---
 st.markdown("""
     <style>
         /* IMPORT FONT */
@@ -22,107 +22,92 @@ st.markdown("""
 
         /* --- GLOBAL VARIABLES --- */
         :root {
-            --bg-color: #FFFFFF;        /* Pure White */
-            --sidebar-bg: #F0F2F6;      /* Light Grey */
             --primary: #FF4081;         /* Bright Pink */
-            --secondary: #40C4FF;       /* Bright Blue */
-            --text-dark: #2C3E50;       /* Dark Blue-Grey (Readable) */
-            --text-light: #FFFFFF;
+            --text-dark: #2C3E50;       /* Dark Grey */
         }
 
-        /* FORCE LIGHT MODE & FONT */
+        /* FORCE FONT */
         html, body, [class*="css"] {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color) !important;
             color: var(--text-dark) !important;
         }
 
-        /* HIDE DEFAULT STREAMLIT HEADER/FOOTER */
+        /* --- THE NEW BACKGROUND (Gradient) --- */
+        .stApp {
+            /* Soft Rose to Peach Gradient */
+            background: linear-gradient(135deg, #FFF5F7 0%, #FFE4E1 100%);
+            background-attachment: fixed;
+        }
+
+        /* HIDE DEFAULT STREAMLIT ELEMENTS */
         header[data-testid="stHeader"], footer, [data-testid="stToolbar"] {
             display: none !important;
         }
 
-        /* --- SIDEBAR STYLING --- */
+        /* --- SIDEBAR (Glass Effect) --- */
         section[data-testid="stSidebar"] {
-            background-color: var(--sidebar-bg) !important;
-            border-right: 2px solid white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            background-color: rgba(255, 255, 255, 0.6) !important;
+            backdrop-filter: blur(10px); /* Frosted Glass */
+            border-right: 1px solid rgba(255,255,255,0.5);
         }
         
-        /* TITLE STYLE */
         .title-text {
             font-size: 3rem;
             font-weight: 800;
-            background: linear-gradient(to right, #FF4081, #7C4DFF);
+            background: linear-gradient(to right, #FF4081, #FF80AB);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
             margin-bottom: 20px;
         }
 
-        /* --- CHAT BUBBLES (ANIMATED) --- */
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.9) translateY(10px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .stChatMessage {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
+        /* --- CHAT BUBBLES --- */
         div[data-testid="stChatMessage"] {
             border-radius: 20px !important;
             padding: 1.5rem !important;
-            border: none !important;
+            border: 1px solid rgba(255,255,255,0.5) !important;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
         }
 
-        /* USER BUBBLE (Bright Pink) */
+        /* USER BUBBLE (Pink Gradient) */
         div[data-testid="stChatMessage"][data-testid*="user"] {
             background: linear-gradient(135deg, #FF80AB, #FF4081) !important;
         }
-        /* User Text must be WHITE */
+        /* User Text White */
         div[data-testid="stChatMessage"][data-testid*="user"] p,
         div[data-testid="stChatMessage"][data-testid*="user"] div {
             color: white !important;
-            font-weight: 500;
         }
 
-        /* ASSISTANT BUBBLE (Light Blue/Grey) */
+        /* ASSISTANT BUBBLE (White Glass) */
         div[data-testid="stChatMessage"][data-testid*="assistant"] {
-            background-color: #F8F9FA !important;
-            border: 2px solid #E3E6EA !important;
-        }
-        /* Assistant Text must be DARK */
-        div[data-testid="stChatMessage"][data-testid*="assistant"] p,
-        div[data-testid="stChatMessage"][data-testid*="assistant"] div {
-            color: #2C3E50 !important;
+            background-color: rgba(255, 255, 255, 0.85) !important;
         }
 
-        /* --- INPUT BOX (Floating Capsule) --- */
+        /* --- INPUT BOX (Floating) --- */
         .stChatInput {
             padding-bottom: 30px;
         }
         .stChatInput textarea {
             background-color: white !important;
             color: #333 !important;
-            border: 3px solid #FF4081 !important;
+            border: 2px solid #FFC1CC !important; /* Soft Pink Border */
             border-radius: 50px !important;
             padding: 15px 25px !important;
-            box-shadow: 0 5px 20px rgba(255, 64, 129, 0.2) !important;
+            box-shadow: 0 5px 20px rgba(255, 193, 204, 0.4) !important;
         }
         .stChatInput textarea:focus {
-            box-shadow: 0 8px 25px rgba(255, 64, 129, 0.4) !important;
+            border-color: #FF4081 !important;
+            box-shadow: 0 5px 25px rgba(255, 64, 129, 0.3) !important;
         }
 
         /* --- BUTTONS --- */
         .stButton button {
             background-color: white !important;
             color: #FF4081 !important;
-            border: 2px solid #FF4081 !important;
+            border: 1px solid #FF4081 !important;
             border-radius: 15px !important;
             font-weight: 600 !important;
-            transition: all 0.3s ease;
         }
         .stButton button:hover {
             background-color: #FF4081 !important;
@@ -132,14 +117,14 @@ st.markdown("""
 
         /* WELCOME CARD */
         .welcome-box {
-            background: white;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
             border-radius: 30px;
-            padding: 40px;
+            padding: 50px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            border: 1px solid #eee;
-            margin-top: 50px;
-            animation: popIn 0.6s ease;
+            box-shadow: 0 10px 40px rgba(255, 64, 129, 0.1);
+            border: 1px solid white;
+            margin-top: 60px;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -180,7 +165,6 @@ plugins = load_plugins()
 # --- 6. SIDEBAR ---
 with st.sidebar:
     st.markdown("<div class='title-text'>KitKat</div>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; color:#888;'>v5.0 Bright Edition</p>", unsafe_allow_html=True)
     st.write("---")
     
     col1, col2 = st.columns([1,4])
@@ -197,7 +181,7 @@ with st.sidebar:
             st.session_state.messages = []
             st.rerun()
 
-# --- 7. AI ENGINE (FIXED MODEL ERROR) ---
+# --- 7. AI ENGINE ---
 def stream_ai_response(prompt):
     if not key:
         yield "⚠️ API Key missing."
@@ -205,21 +189,19 @@ def stream_ai_response(prompt):
 
     genai.configure(api_key=key)
     
-    # FIX: Using 'gemini-flash-latest' which is supported by your account
-    # Added fallback to 'gemini-pro' just in case
+    # Using 'gemini-flash-latest' to ensure connection works
     models_to_try = ["gemini-flash-latest", "gemini-pro"]
     
     active_model = None
     for m in models_to_try:
         try:
             test_model = genai.GenerativeModel(m)
-            # Simple test to see if model is valid before streaming
             active_model = test_model
             break
         except: continue
     
     if not active_model:
-        yield "⚠️ Connection Error: No available models found."
+        yield "⚠️ Connection Error. Please refresh."
         return
 
     try:
@@ -227,7 +209,7 @@ def stream_ai_response(prompt):
         for chunk in response:
             for char in chunk.text:
                 yield char
-                time.sleep(0.005) # Typing speed
+                time.sleep(0.005)
     except Exception as e:
         yield f"⚠️ Error: {str(e)}"
 
@@ -237,10 +219,10 @@ def stream_ai_response(prompt):
 if not st.session_state.messages:
     st.markdown("""
         <div class="welcome-box">
-            <h1 style="color: #FF4081; font-size: 3rem;">Hello! 👋</h1>
-            <p style="font-size: 1.2rem; color: #555;">
-                I'm <b>KitKat</b>, your personal AI companion.
-                <br>I'm ready to chat, help, or listen.
+            <h1 style="color: #FF4081; font-size: 3.5rem;">🌸 Hello!</h1>
+            <p style="font-size: 1.3rem; color: #555;">
+                I'm <b>KitKat</b>.
+                <br>Your world, my words.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -251,8 +233,7 @@ for msg in st.session_state.messages:
         st.markdown(msg["content"])
 
 # Input Handling
-if prompt := st.chat_input("Type something fun..."):
-    # 1. User Message
+if prompt := st.chat_input("Type something..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -260,7 +241,7 @@ if prompt := st.chat_input("Type something fun..."):
     response = ""
     mode = getattr(st.session_state, 'mode', None)
 
-    # 2. Plugin Logic
+    # Logic
     if mode == "write" and 'note' in plugins:
         response = plugins['note'](CONFIG, f"Entry :: {prompt}")
         st.session_state.mode = None
@@ -271,11 +252,8 @@ if prompt := st.chat_input("Type something fun..."):
         cmd = prompt.split()[0].lower()
         arg = prompt.split(" ", 1)[1] if " " in prompt else ""
         response = plugins[cmd](CONFIG, arg) if arg else plugins[cmd](CONFIG)
-        
         with st.chat_message("assistant"):
             st.markdown(response)
-    
-    # 3. AI Logic (Streaming)
     else:
         with st.chat_message("assistant"):
             placeholder = st.empty()
