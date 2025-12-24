@@ -7,11 +7,26 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="KitKat AI", page_icon="♥", layout="centered")
+st.set_page_config(page_title="KitKat AI", page_icon="♥", layout="centered", initial_sidebar_state="expanded")
 
-# --- AGGRESSIVE THEME OVERRIDE ---
+# --- STEALTH MODE & THEME CSS ---
 st.markdown("""
     <style>
+        /* 1. HIDE STREAMLIT HEADER, DEPLOY BUTTON, & MENU */
+        header[data-testid="stHeader"] {
+            visibility: hidden;
+            height: 0%;
+        }
+        [data-testid="stToolbar"] {
+            visibility: hidden;
+            height: 0%;
+        }
+        div.stDecoration {
+            visibility: hidden;
+            height: 0%;
+        }
+
+        /* 2. FORCE ROSE GOLD THEME */
         :root {
             --primary-color: #D84378;
             --background-color: #FFF0F5;
@@ -22,11 +37,15 @@ st.markdown("""
         .stApp { background-color: #FFF0F5 !important; }
         section[data-testid="stSidebar"] { background-color: #FFE4E8 !important; }
         h1, h2, h3, p, span, div, label, .stMarkdown, .stText { color: #4A4A4A !important; }
+        
+        /* 3. INPUT BOX STYLING */
         .stChatInput textarea {
             background-color: #FFFFFF !important;
             color: #333333 !important;
             border: 2px solid #D84378 !important;
         }
+        
+        /* 4. CHAT BUBBLES */
         div[data-testid="stChatMessage"] {
             background-color: #FFFFFF !important;
             color: #333333 !important;
@@ -36,6 +55,8 @@ st.markdown("""
         div[data-testid="stChatMessage"][data-testid*="user"] {
             background-color: #FFE4E1 !important;
         }
+        
+        /* 5. BUTTONS */
         div.stButton > button {
             color: #D84378 !important;
             background-color: white !important;
@@ -95,17 +116,14 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-# --- AI LOGIC (UPDATED MODEL NAME) ---
+# --- AI LOGIC ---
 def get_ai_response(prompt):
     if not key: return "Error: No API Key found."
     
     try:
         genai.configure(api_key=key)
-        
-        # FIX: Using 'gemini-flash-latest' because your account has this alias
-        # This points to the same model but avoids the 404 error
+        # Using gemini-flash-latest to avoid 404 errors
         model = genai.GenerativeModel("gemini-flash-latest")
-        
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
@@ -115,6 +133,8 @@ def get_ai_response(prompt):
         return f"Connection Error: {err_msg}"
 
 # --- MAIN CHAT ---
+# Extra spacing to account for hidden header
+st.markdown("<div style='margin-top: -50px;'></div>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center; color: #D84378;'>How can I help you?</h3>", unsafe_allow_html=True)
 
 for msg in st.session_state.messages:
