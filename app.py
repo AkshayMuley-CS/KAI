@@ -9,43 +9,43 @@ import google.generativeai as genai
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="KitKat AI", page_icon="♥", layout="centered", initial_sidebar_state="expanded")
 
-# --- STEALTH MODE & THEME CSS ---
+# --- CSS FIXES (Visuals) ---
 st.markdown("""
     <style>
-        /* 1. HIDE STREAMLIT HEADER, DEPLOY BUTTON, & MENU */
-        header[data-testid="stHeader"] {
-            visibility: hidden;
-            height: 0%;
-        }
-        [data-testid="stToolbar"] {
-            visibility: hidden;
-            height: 0%;
-        }
-        div.stDecoration {
-            visibility: hidden;
-            height: 0%;
-        }
-
-        /* 2. FORCE ROSE GOLD THEME */
+        /* 1. FORCE LIGHT MODE VARIABLES */
         :root {
             --primary-color: #D84378;
             --background-color: #FFF0F5;
             --secondary-background-color: #FFE4E8;
             --text-color: #4A4A4A;
-            --font: sans-serif;
         }
+
+        /* 2. MAIN BACKGROUNDS */
         .stApp { background-color: #FFF0F5 !important; }
         section[data-testid="stSidebar"] { background-color: #FFE4E8 !important; }
-        h1, h2, h3, p, span, div, label, .stMarkdown, .stText { color: #4A4A4A !important; }
         
-        /* 3. INPUT BOX STYLING */
-        .stChatInput textarea {
-            background-color: #FFFFFF !important;
-            color: #333333 !important;
-            border: 2px solid #D84378 !important;
+        /* 3. FIX THE BLACK BOTTOM BAR (Crucial) */
+        footer { visibility: hidden; }
+        .stBottom { background-color: #FFF0F5 !important; }
+        div[data-testid="stBottom"] { background-color: #FFF0F5 !important; }
+
+        /* 4. INPUT BOX STYLING */
+        .stChatInput {
+            background-color: #FFF0F5 !important; /* Pink background behind box */
         }
-        
-        /* 4. CHAT BUBBLES */
+        .stChatInput textarea {
+            background-color: #FFFFFF !important; /* White box */
+            color: #333333 !important;           /* Dark text */
+            border: 2px solid #D84378 !important; /* Pink border */
+            border-radius: 20px !important;
+        }
+
+        /* 5. TEXT VISIBILITY */
+        h1, h2, h3, p, span, div, label, .stMarkdown, .stText { 
+            color: #4A4A4A !important; 
+        }
+
+        /* 6. CHAT BUBBLES */
         div[data-testid="stChatMessage"] {
             background-color: #FFFFFF !important;
             color: #333333 !important;
@@ -55,13 +55,10 @@ st.markdown("""
         div[data-testid="stChatMessage"][data-testid*="user"] {
             background-color: #FFE4E1 !important;
         }
-        
-        /* 5. BUTTONS */
-        div.stButton > button {
-            color: #D84378 !important;
-            background-color: white !important;
-            border: 1px solid #D84378 !important;
-        }
+
+        /* 7. HIDE TOOLBARS */
+        header[data-testid="stHeader"] { visibility: hidden; }
+        [data-testid="stToolbar"] { visibility: hidden; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -116,24 +113,27 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-# --- AI LOGIC ---
+# --- AI LOGIC (Fixed Model) ---
 def get_ai_response(prompt):
     if not key: return "Error: No API Key found."
     
-    try:
-        genai.configure(api_key=key)
-        # Using gemini-flash-latest to avoid 404 errors
-        model = genai.GenerativeModel("gemini-flash-latest")
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        err_msg = str(e)
-        if "429" in err_msg:
-            return "I need a moment to think (Rate Limit). Please wait 10 seconds. ♥"
-        return f"Connection Error: {err_msg}"
+    genai.configure(api_key=key)
+    
+    # We try 3 models. If one fails, we immediately try the next.
+    # This prevents the 404 Error.
+    models_to_try = ["gemini-1.5-flash", "gemini-flash-latest", "gemini-pro"]
+    
+    for model_name in models_to_try:
+        try:
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt)
+            return response.text
+        except Exception:
+            continue # Try next model
+            
+    return "I'm having trouble connecting to Google. Please try again in a moment. ♥"
 
 # --- MAIN CHAT ---
-# Extra spacing to account for hidden header
 st.markdown("<div style='margin-top: -50px;'></div>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center; color: #D84378;'>How can I help you?</h3>", unsafe_allow_html=True)
 
