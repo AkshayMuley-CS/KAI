@@ -6,7 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-# --- 1. PAGE CONFIGURATION ---
+# --- 1. PAGE CONFIG ---
 st.set_page_config(
     page_title="KitKat AI",
     page_icon="♥",
@@ -14,132 +14,84 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. THE "GLASS ROSE" DESIGN SYSTEM (CSS) ---
+# --- 2. CSS STYLING (Force Black Text) ---
 st.markdown("""
     <style>
-        /* --- GLOBAL RESET & FONTS --- */
-        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
+        /* IMPORT FONT */
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
         
-        :root {
-            --bg-color: #FFF0F5;
-            --accent-color: #D81B60;
-            --text-color: #424242;
-            --glass-white: rgba(255, 255, 255, 0.95);
+        /* FORCE ALL TEXT TO BE BLACK */
+        * {
+            font-family: 'Quicksand', sans-serif !important;
+            color: #333333 !important;
         }
 
-        html, body, [class*="css"] {
-            font-family: 'Quicksand', sans-serif;
-            color: var(--text-color);
-        }
-
-        /* --- BACKGROUND GRADIENT --- */
+        /* APP BACKGROUND */
         .stApp {
-            background: linear-gradient(135deg, #FFF0F5 0%, #FFD1DC 100%);
-            background-attachment: fixed;
+            background: linear-gradient(135deg, #FFF0F5 0%, #FFE4E1 100%);
         }
 
-        /* --- FIXING THE "BLACK BAR" AT THE BOTTOM --- */
-        .stBottom, div[data-testid="stBottom"] {
-            background-color: transparent !important;
-            border: none !important;
-        }
-        div[data-testid="stBottom"] > div {
-            background-color: transparent !important;
-        }
-
-        /* --- INPUT BOX STYLING (FLOATING PILL) --- */
-        .stChatInput {
-            padding-bottom: 20px;
-        }
-        .stChatInput textarea {
-            background-color: white !important;
-            color: #333 !important;
-            border-radius: 30px !important;
-            border: 2px solid #FFC1CC !important;
-            box-shadow: 0 4px 15px rgba(216, 27, 96, 0.1) !important;
-        }
-        .stChatInput textarea:focus {
-            border-color: #D81B60 !important;
-            box-shadow: 0 4px 20px rgba(216, 27, 96, 0.2) !important;
+        /* HIDE DEFAULT ELEMENTS */
+        header, footer, [data-testid="stToolbar"], .stDeployButton {
+            display: none !important;
         }
 
         /* --- CHAT BUBBLES --- */
         div[data-testid="stChatMessage"] {
-            background-color: var(--glass-white);
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.5);
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border-radius: 20px !important;
+            border: 1px solid #FFC1CC !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+            padding: 15px !important;
         }
         
-        /* User Bubble */
+        /* User Bubble Color */
         div[data-testid="stChatMessage"][data-testid*="user"] {
-            background-color: #FFEAEE;
-            border-bottom-right-radius: 5px;
-        }
-        
-        /* Bot Bubble */
-        div[data-testid="stChatMessage"][data-testid*="assistant"] {
-            background-color: #FFFFFF;
-            border-bottom-left-radius: 5px;
+            background-color: #FFEAEE !important;
         }
 
-        /* --- HIDE UGLY ELEMENTS --- */
-        header[data-testid="stHeader"] { visibility: hidden; }
-        [data-testid="stToolbar"] { visibility: hidden; }
-        footer { visibility: hidden; }
-        .stDeployButton { display: none; }
-        
-        /* --- SIDEBAR STYLING --- */
-        section[data-testid="stSidebar"] {
-            background-color: #FFFFFF;
-            border-right: 1px solid #FFE4E1;
+        /* CRITICAL: FORCE CHAT TEXT VISIBILITY */
+        div[data-testid="stChatMessage"] p, 
+        div[data-testid="stChatMessage"] div {
+            color: #000000 !important;
+            font-weight: 500 !important;
+        }
+
+        /* --- INPUT BOX --- */
+        .stChatInput textarea {
+            background-color: #FFFFFF !important;
+            color: #000000 !important; /* Force Black Text */
+            caret-color: #D81B60 !important; /* Pink Cursor */
+            border: 2px solid #FFC1CC !important;
+            border-radius: 30px !important;
         }
         
-        /* --- CUSTOM BUTTONS --- */
+        /* HIDE BLACK BOTTOM BAR */
+        .stBottom { background-color: transparent !important; }
+        div[data-testid="stBottom"] { background-color: transparent !important; }
+
+        /* --- SIDEBAR BUTTONS --- */
         div.stButton > button {
+            background-color: white !important;
+            color: #D81B60 !important;
+            border: 1px solid #FFC1CC !important;
+            border-radius: 12px !important;
             width: 100%;
-            border-radius: 12px;
-            border: 1px solid #FFC1CC;
-            color: #D81B60;
-            background-color: white;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s;
         }
         div.stButton > button:hover {
-            background-color: #D81B60;
-            color: white;
-            border-color: #D81B60;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(216, 27, 96, 0.2);
+            background-color: #D81B60 !important;
+            color: white !important;
+            border-color: #D81B60 !important;
         }
-        
-        /* --- WELCOME CARD --- */
-        .welcome-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            margin-top: 50px;
-            box-shadow: 0 10px 30px rgba(216, 27, 96, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        .welcome-title {
-            font-size: 2.5rem;
-            color: #D81B60;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .welcome-subtitle {
-            font-size: 1.1rem;
-            color: #666;
-        }
+
+        /* WELCOME CARD TEXT */
+        .welcome-title { color: #D81B60 !important; font-size: 2.5rem; font-weight: 700; }
+        .welcome-subtitle { color: #555 !important; }
+
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. BACKEND SETUP ---
+# --- 3. BACKEND ---
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 PLUGINS_DIR = BASE_DIR / "plugins"
@@ -148,14 +100,14 @@ CONFIG = {"DATA_DIR": DATA_DIR}
 
 if "messages" not in st.session_state: st.session_state.messages = []
 
-# --- 4. LOAD CREDENTIALS ---
+# --- 4. LOAD KEY ---
 try:
     key = st.secrets["GEMINI_API_KEY"]
 except:
     load_dotenv()
     key = os.getenv("GEMINI_API_KEY")
 
-# --- 5. LOAD PLUGINS ---
+# --- 5. PLUGINS ---
 def load_plugins():
     plugins = {}
     if PLUGINS_DIR.exists():
@@ -174,26 +126,15 @@ plugins = load_plugins()
 
 # --- 6. SIDEBAR ---
 with st.sidebar:
-    st.markdown("<h2 style='text-align: center; color: #D81B60;'>Menu</h2>", unsafe_allow_html=True)
-    
-    st.write("") # Spacing
-    
-    if st.button("♥  Write to Diary"):
+    st.markdown("<h2 style='text-align: center; color: #D81B60;'>KitKat Menu</h2>", unsafe_allow_html=True)
+    st.write("")
+    if st.button("♥ Write to Diary"):
         st.session_state.mode = "write"
-        st.toast("Diary Mode Active: Type your entry!", icon="♥")
-        
-    if st.button("📖  Read Diary"):
+        st.toast("Mode: Writing Entry", icon="♥")
+    if st.button("📖 Read Diary"):
         st.session_state.mode = "read"
-        st.toast("Reading Mode: Type a title to search.", icon="📖")
-
-    if st.button("⚡  System Health"):
-        if 'system' in plugins:
-            st.session_state.messages.append({"role": "assistant", "content": plugins['system'](CONFIG)})
-            st.rerun()
-
-    st.divider()
-    
-    if st.button("🗑  Clear Chat"):
+        st.toast("Mode: Reading", icon="📖")
+    if st.button("🗑 Clear Chat"):
         st.session_state.messages = []
         st.rerun()
 
@@ -201,41 +142,28 @@ with st.sidebar:
 def get_ai_response(prompt):
     if not key: return "Error: No API Key found."
     genai.configure(api_key=key)
-    
-    # Priority list to avoid 404/429
-    models = ["gemini-1.5-flash", "gemini-flash-latest", "gemini-pro"]
-    
+    models = ["gemini-1.5-flash", "gemini-flash-latest"]
     for m in models:
         try:
             model = genai.GenerativeModel(m)
             return model.generate_content(prompt).text
         except: continue
-            
-    return "I'm having trouble connecting. Please try again in a moment. ♥"
+    return "I need a moment (Connection Error). Please try again. ♥"
 
-# --- 8. MAIN UI LOGIC ---
-
-# A. If Chat is Empty -> Show "Welcome Card" to fill space
+# --- 8. UI RENDER ---
 if not st.session_state.messages:
     st.markdown("""
-        <div class="welcome-card">
+        <div style="text-align: center; padding: 50px; background: rgba(255,255,255,0.7); border-radius: 20px; margin-top: 50px;">
             <div class="welcome-title">KitKat AI</div>
             <div class="welcome-subtitle">Your personal companion, always here for you.</div>
-            <br>
-            <p style='color: #888; font-size: 0.9rem;'>
-                Try asking: "How are you?" or click "Write to Diary"
-            </p>
         </div>
     """, unsafe_allow_html=True)
 
-# B. Render Chat History
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# C. Handle Input
 if prompt := st.chat_input("Message KitKat..."):
-    # Add User Message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -243,7 +171,6 @@ if prompt := st.chat_input("Message KitKat..."):
     response = ""
     mode = getattr(st.session_state, 'mode', None)
 
-    # Plugin Handlers
     if mode == "write" and 'note' in plugins:
         response = plugins['note'](CONFIG, f"Entry :: {prompt}")
         st.session_state.mode = None
@@ -254,13 +181,10 @@ if prompt := st.chat_input("Message KitKat..."):
         cmd = prompt.split()[0].lower()
         arg = prompt.split(" ", 1)[1] if " " in prompt else ""
         response = plugins[cmd](CONFIG, arg) if arg else plugins[cmd](CONFIG)
-    
-    # AI Handler
     else:
         with st.spinner("Thinking..."):
             response = get_ai_response(prompt)
 
-    # Add Bot Message
     with st.chat_message("assistant"):
         st.markdown(response)
     st.session_state.messages.append({"role": "assistant", "content": response})
