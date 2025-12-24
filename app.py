@@ -6,41 +6,70 @@ from pathlib import Path
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-# --- PAGE CONFIG ---
+# --- PAGE CONFIG (Must be first) ---
 st.set_page_config(page_title="KitKat AI", page_icon="♥", layout="centered")
 
-# --- CUSTOM CSS (Refined for Rose Gold) ---
+# --- AGGRESSIVE THEME OVERRIDE ---
+# This forces the browser to render in Light Mode colors only
 st.markdown("""
-<style>
-    /* Force Input Box Styling */
-    .stChatInput textarea {
-        background-color: #FFFFFF !important;
-        color: #333333 !important;
-        border: 2px solid #D84378 !important;
-        border-radius: 20px !important;
-    }
-    /* Chat Bubbles */
-    div[data-testid="stChatMessage"] {
-        background-color: #FFFFFF;
-        border-radius: 15px;
-        padding: 10px;
-        box-shadow: 0px 2px 5px rgba(0,0,0,0.05);
-    }
-    div[data-testid="stChatMessage"][data-testid*="user"] {
-        background-color: #FFE4E1; /* Pink for user */
-    }
-    /* Buttons */
-    .stButton button {
-        color: #D84378 !important;
-        border: 1px solid #D84378 !important;
-        background-color: white !important;
-        border-radius: 10px !important;
-    }
-    .stButton button:hover {
-        background-color: #D84378 !important;
-        color: white !important;
-    }
-</style>
+    <style>
+        /* Force Light Mode Variables */
+        :root {
+            --primary-color: #D84378;
+            --background-color: #FFF0F5;
+            --secondary-background-color: #FFE4E8;
+            --text-color: #4A4A4A;
+            --font: sans-serif;
+        }
+        
+        /* Force Main Background */
+        .stApp {
+            background-color: #FFF0F5 !important;
+        }
+        
+        /* Force Sidebar Background */
+        section[data-testid="stSidebar"] {
+            background-color: #FFE4E8 !important;
+        }
+        
+        /* Force Text Colors (Fixes invisible text) */
+        h1, h2, h3, p, span, div, label, .stMarkdown, .stText {
+            color: #4A4A4A !important;
+        }
+        
+        /* Fix Input Box (White background, Dark text) */
+        .stChatInput textarea {
+            background-color: #FFFFFF !important;
+            color: #333333 !important;
+            caret-color: #D84378 !important; /* Pink cursor */
+            border: 2px solid #D84378 !important;
+        }
+        
+        /* Fix Chat Bubbles */
+        div[data-testid="stChatMessage"] {
+            background-color: #FFFFFF !important;
+            color: #333333 !important;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* User Bubble Pink */
+        div[data-testid="stChatMessage"][data-testid*="user"] {
+            background-color: #FFE4E1 !important;
+        }
+        
+        /* Buttons */
+        div.stButton > button {
+            color: #D84378 !important;
+            background-color: white !important;
+            border: 1px solid #D84378 !important;
+        }
+        div.stButton > button:hover {
+            background-color: #D84378 !important;
+            color: white !important;
+            border-color: #D84378 !important;
+        }
+    </style>
 """, unsafe_allow_html=True)
 
 # --- BACKEND SETUP ---
@@ -59,7 +88,7 @@ except:
     load_dotenv()
     key = os.getenv("GEMINI_API_KEY")
 
-# --- PLUGINS LOADER ---
+# --- PLUGINS ---
 def load_plugins():
     plugins = {}
     if PLUGINS_DIR.exists():
@@ -78,60 +107,40 @@ plugins = load_plugins()
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("<h1 style='color: #D84378;'>KitKat AI ♥</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #D84378; text-align: center;'>KitKat AI ♥</h1>", unsafe_allow_html=True)
     st.caption("Status: ● Online")
-    
     st.write("---")
     
     if st.button("♥  Write to Diary"):
         st.session_state.mode = "write"
-        st.success("Mode Active: Type your entry!")
+        st.success("Mode: Writing...")
         
     if st.button("📖  Read Diary"):
         st.session_state.mode = "read"
-        st.info("Mode Active: Type the title.")
+        st.info("Mode: Reading...")
 
     if st.button("🗑  Clear Chat"):
         st.session_state.messages = []
         st.rerun()
 
-# --- ROBUST AI CONNECTION ---
+# --- AI LOGIC (Simplified & Reliable) ---
 def get_ai_response(prompt):
-    if not key: return "Error: API Key missing."
+    if not key: return "Error: No API Key found."
     
-    genai.configure(api_key=key)
-    
-    # EXACT MODELS FOUND IN YOUR DIAGNOSTIC SCAN
-    # We try them in order of speed/reliability
-    models = [
-        "gemini-1.5-flash",       # Standard Flash
-        "gemini-flash-latest",    # Latest Flash alias
-        "gemini-2.0-flash-exp",   # New 2.0 (Fast)
-        "gemini-pro-latest"       # Stable Pro
-    ]
-    
-    last_err = ""
-    
-    for m in models:
-        try:
-            model = genai.GenerativeModel(m)
-            # Send message
-            response = model.generate_content(prompt)
-            return response.text
-        except Exception as e:
-            last_err = str(e)
-            if "429" in last_err: # Rate limit
-                time.sleep(1) # Wait a tiny bit and try next model
-                continue
-            elif "404" in last_err: # Model not found
-                continue
-            else:
-                # Actual error (like internet down)
-                return f"Connection Error: {e}"
+    try:
+        genai.configure(api_key=key)
+        # We use ONLY gemini-1.5-flash because it is the most reliable free model
+        # It avoids the 404 error (found in 1.0) and the 429 error (found in 2.0)
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        err_msg = str(e)
+        if "429" in err_msg:
+            return "I need a moment to think (Rate Limit). Please wait 10 seconds. ♥"
+        return f"Connection Error: {err_msg}"
 
-    return "I'm thinking too fast (Rate Limit). Please wait 10 seconds and try again! ♥"
-
-# --- MAIN CHAT UI ---
+# --- MAIN CHAT ---
 st.markdown("<h3 style='text-align: center; color: #D84378;'>How can I help you?</h3>", unsafe_allow_html=True)
 
 for msg in st.session_state.messages:
@@ -146,7 +155,7 @@ if prompt := st.chat_input("Message KitKat..."):
     response = ""
     mode = getattr(st.session_state, 'mode', None)
 
-    # 1. Plugin Check
+    # Plugins
     if mode == "write" and 'note' in plugins:
         response = plugins['note'](CONFIG, f"Entry :: {prompt}")
         st.session_state.mode = None
@@ -158,7 +167,7 @@ if prompt := st.chat_input("Message KitKat..."):
         arg = prompt.split(" ", 1)[1] if " " in prompt else ""
         response = plugins[cmd](CONFIG, arg) if arg else plugins[cmd](CONFIG)
     
-    # 2. AI Check
+    # AI
     else:
         with st.spinner("Thinking..."):
             response = get_ai_response(prompt)
