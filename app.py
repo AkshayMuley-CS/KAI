@@ -6,14 +6,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-# --- PAGE CONFIG (Must be first) ---
+# --- PAGE CONFIG ---
 st.set_page_config(page_title="KitKat AI", page_icon="♥", layout="centered")
 
 # --- AGGRESSIVE THEME OVERRIDE ---
-# This forces the browser to render in Light Mode colors only
 st.markdown("""
     <style>
-        /* Force Light Mode Variables */
         :root {
             --primary-color: #D84378;
             --background-color: #FFF0F5;
@@ -21,53 +19,27 @@ st.markdown("""
             --text-color: #4A4A4A;
             --font: sans-serif;
         }
-        
-        /* Force Main Background */
-        .stApp {
-            background-color: #FFF0F5 !important;
-        }
-        
-        /* Force Sidebar Background */
-        section[data-testid="stSidebar"] {
-            background-color: #FFE4E8 !important;
-        }
-        
-        /* Force Text Colors (Fixes invisible text) */
-        h1, h2, h3, p, span, div, label, .stMarkdown, .stText {
-            color: #4A4A4A !important;
-        }
-        
-        /* Fix Input Box (White background, Dark text) */
+        .stApp { background-color: #FFF0F5 !important; }
+        section[data-testid="stSidebar"] { background-color: #FFE4E8 !important; }
+        h1, h2, h3, p, span, div, label, .stMarkdown, .stText { color: #4A4A4A !important; }
         .stChatInput textarea {
             background-color: #FFFFFF !important;
             color: #333333 !important;
-            caret-color: #D84378 !important; /* Pink cursor */
             border: 2px solid #D84378 !important;
         }
-        
-        /* Fix Chat Bubbles */
         div[data-testid="stChatMessage"] {
             background-color: #FFFFFF !important;
             color: #333333 !important;
             border-radius: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        
-        /* User Bubble Pink */
         div[data-testid="stChatMessage"][data-testid*="user"] {
             background-color: #FFE4E1 !important;
         }
-        
-        /* Buttons */
         div.stButton > button {
             color: #D84378 !important;
             background-color: white !important;
             border: 1px solid #D84378 !important;
-        }
-        div.stButton > button:hover {
-            background-color: #D84378 !important;
-            color: white !important;
-            border-color: #D84378 !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -123,15 +95,17 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-# --- AI LOGIC (Simplified & Reliable) ---
+# --- AI LOGIC (UPDATED MODEL NAME) ---
 def get_ai_response(prompt):
     if not key: return "Error: No API Key found."
     
     try:
         genai.configure(api_key=key)
-        # We use ONLY gemini-1.5-flash because it is the most reliable free model
-        # It avoids the 404 error (found in 1.0) and the 429 error (found in 2.0)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        
+        # FIX: Using 'gemini-flash-latest' because your account has this alias
+        # This points to the same model but avoids the 404 error
+        model = genai.GenerativeModel("gemini-flash-latest")
+        
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
