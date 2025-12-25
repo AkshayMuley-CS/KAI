@@ -8,77 +8,94 @@ import google.generativeai as genai
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="KitKat AI",
-    page_icon="💙",
+    page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# --- 2. ELECTRIC BLUE THEME CSS ---
+# --- 2. NEON GLASS THEME CSS ---
 st.markdown("""
     <style>
-        /* IMPORT MODERN FONTS */
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+        /* IMPORT FONTS */
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Inter:wght@400;600&display=swap');
 
         :root {
-            --bg-color: #020617;        /* Very Dark Blue */
-            --card-bg: #0F172A;         /* Dark Blue-Grey */
-            --primary: #00F0FF;         /* Electric Cyan */
-            --secondary: #4361EE;       /* Royal Blue */
-            --text-main: #F8FAFC;       /* White-ish */
-            --glow: rgba(0, 240, 255, 0.5);
+            --bg-color: #0a0a12;        /* Deep Space Black */
+            --glass-bg: rgba(20, 20, 35, 0.7);
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --text-main: #ffffff;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
         html, body, [class*="css"] {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-color) !important;
             color: var(--text-main) !important;
         }
 
-        /* --- BACKGROUND --- */
+        /* --- BACKGROUND GRADIENT --- */
         .stApp {
-            background: radial-gradient(circle at top center, #1e1b4b 0%, #020617 60%);
+            background: radial-gradient(circle at 20% 20%, rgba(188, 19, 254, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 80%, rgba(0, 243, 255, 0.15) 0%, transparent 40%),
+                        var(--bg-color);
             background-attachment: fixed;
         }
 
-        /* --- HIDE DEFAULT UI --- */
-        header, footer, [data-testid="stToolbar"] { display: none !important; }
-        section[data-testid="stSidebar"] { display: none; }
+        /* --- HIDE DEFAULT STREAMLIT HEADER --- */
+        header[data-testid="stHeader"], footer, [data-testid="stToolbar"] { display: none !important; }
 
-        /* --- HERO SECTION (THE BIG TITLE) --- */
-        .hero-container {
+        /* --- CUSTOM NAVBAR --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(10, 10, 18, 0.85);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            height: 70vh;
-            text-align: center;
-            animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1);
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 9999;
         }
-
-        .hero-title {
-            font-size: 7rem; /* MASSIVE SIZE */
-            font-weight: 900;
-            letter-spacing: -4px;
-            line-height: 1;
-            background: linear-gradient(135deg, #FFFFFF 0%, #4361EE 100%);
+        .nav-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 50px rgba(67, 97, 238, 0.3);
-            margin-bottom: 20px;
-        }
-
-        .hero-badge {
-            background: rgba(0, 240, 255, 0.1);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-weight: 700;
             letter-spacing: 1px;
-            box-shadow: 0 0 20px var(--glow);
         }
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+        .nav-item:hover { color: var(--neon-blue); cursor: pointer; transition: 0.3s; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- SIDEBAR STYLING --- */
+        section[data-testid="stSidebar"] {
+            background-color: var(--glass-bg) !important;
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            margin-top: 70px; /* Push below navbar */
+        }
+        
+        .sidebar-header {
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
 
         /* --- CHAT BUBBLES --- */
         div[data-testid="stChatMessage"] {
@@ -88,49 +105,108 @@ st.markdown("""
             margin-bottom: 20px;
         }
 
-        /* User Message (Right, Blue Gradient) */
-        div[data-testid="stChatMessage"][data-testid*="user"] {
-            justify-content: flex-end;
-        }
+        /* User Bubble (Neon Gradient) */
         div[data-testid="stChatMessage"][data-testid*="user"] > div {
-            background: linear-gradient(135deg, var(--secondary), #3A0CA3) !important;
+            background: linear-gradient(135deg, #2b0052, #1a0033) !important;
+            border: 1px solid var(--neon-purple) !important;
             color: white !important;
-            border-radius: 18px;
-            border-bottom-right-radius: 4px;
-            padding: 15px 25px !important;
-            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.3);
+            border-radius: 15px;
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 0 15px rgba(188, 19, 254, 0.3);
         }
 
-        /* AI Message (Left, Glass Dark) */
+        /* AI Bubble (Glass) */
         div[data-testid="stChatMessage"][data-testid*="assistant"] > div {
-            background: rgba(15, 23, 42, 0.8) !important;
-            border: 1px solid #1E293B !important;
-            border-radius: 18px;
-            border-bottom-left-radius: 4px;
-            padding: 15px 25px !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 15px;
+            border-bottom-left-radius: 2px;
         }
 
-        /* --- INPUT BOX (Floating Glow) --- */
-        .stChatInput { padding-bottom: 40px; }
+        /* --- HERO HEADING (CENTERED) --- */
+        .hero-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            margin-top: 50px;
+            text-align: center;
+            animation: fadeIn 1.2s ease;
+        }
         
+        .hero-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 6rem;
+            font-weight: 800;
+            line-height: 0.9;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #888;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* --- INPUT BOX --- */
+        .stChatInput { padding-bottom: 40px; }
         .stChatInput textarea {
-            background-color: #0F172A !important;
+            background-color: rgba(0,0,0,0.5) !important;
+            border: 1px solid var(--border-color) !important;
             color: white !important;
-            border: 2px solid #1E293B !important;
-            border-radius: 15px !important;
-            box-shadow: 0 0 0 transparent;
-            transition: all 0.3s ease;
+            border-radius: 12px !important;
         }
         .stChatInput textarea:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 30px var(--glow) !important;
-            transform: translateY(-2px);
+            border-color: var(--neon-blue) !important;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2) !important;
         }
+
+        /* --- BUTTONS --- */
+        .stButton button {
+            background: transparent !important;
+            border: 1px solid var(--neon-blue) !important;
+            color: var(--neon-blue) !important;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        .stButton button:hover {
+            background: var(--neon-blue) !important;
+            color: black !important;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. BACKEND ---
+# --- 3. CUSTOM NAVBAR INJECTION ---
+st.markdown("""
+    <div class="navbar">
+        <div class="nav-logo">KITKAT AI</div>
+        <div class="nav-links">
+            <span class="nav-item">HOME</span>
+            <span class="nav-item">DOCS</span>
+            <span class="nav-item">SETTINGS</span>
+            <span class="nav-item" style="color:var(--neon-purple);">LOGIN</span>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+# --- 4. BACKEND SETUP ---
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 PLUGINS_DIR = BASE_DIR / "plugins"
@@ -139,18 +215,39 @@ CONFIG = {"DATA_DIR": DATA_DIR}
 
 if "messages" not in st.session_state: st.session_state.messages = []
 
-# --- 4. KEY LOADING ---
+# --- 5. KEY LOADING ---
 try:
     key = st.secrets["GEMINI_API_KEY"]
 except:
     load_dotenv()
     key = os.getenv("GEMINI_API_KEY")
 
-# --- 5. AI ENGINE ---
+# --- 6. SIDEBAR ---
+with st.sidebar:
+    st.markdown('<div class="sidebar-header">/// CONTROL PANEL</div>', unsafe_allow_html=True)
+    
+    if st.button("➕ New Chat"):
+        st.session_state.messages = []
+        st.rerun()
+        
+    st.write("") # Spacer
+    
+    if st.button("📓 Diary Mode"):
+        st.session_state.mode = "write"
+        st.toast("System: Diary Protocol Engaged")
+
+    if st.button("📂 Archives"):
+        st.session_state.mode = "read"
+        st.toast("System: Accessing Database")
+        
+    st.divider()
+    st.caption("System Status: ● ONLINE")
+
+# --- 7. AI ENGINE ---
 def stream_ai_response(prompt):
     if not key: yield "System Error: API Key missing."; return
     genai.configure(api_key=key)
-    models = ["gemini-1.5-flash", "gemini-pro"]
+    models = ["gemini-flash-latest", "gemini-pro"]
     active_model = None
     for m in models:
         try:
@@ -167,29 +264,43 @@ def stream_ai_response(prompt):
                 time.sleep(0.005)
     except Exception as e: yield f"Runtime Error: {str(e)}"
 
-# --- 6. UI RENDER ---
+# --- 8. UI RENDER ---
 
-# --- HERO SECTION (VISIBLE WHEN EMPTY) ---
+# --- HERO SECTION (When Empty) ---
 if not st.session_state.messages:
     st.markdown("""
         <div class="hero-container">
-            <div class="hero-title">KITKAT AI</div>
-            <div class="hero-badge">⚡ ONLINE & READY</div>
-            <p style="color: #64748B; margin-top: 20px;">Ask me anything, or just say hello.</p>
+            <div class="hero-title">
+                THE NEXT GEN<br>
+                <span class="hero-gradient">NEURAL INTERFACE</span>
+            </div>
+            <div class="hero-subtitle">
+                POWERED BY KITKAT AI V5.0
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
 # Chat History
+# Add spacing so chat doesn't hide behind navbar
+st.markdown("<div style='margin-top: 80px;'></div>", unsafe_allow_html=True)
+
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
 # Input
-if prompt := st.chat_input("Type a message..."):
+if prompt := st.chat_input("Enter command..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    response = ""
+    mode = getattr(st.session_state, 'mode', None)
+
+    # Plugin logic here (abbreviated for cleanliness, assuming plugins loaded same as before)
+    # ... (You can paste your plugin loading logic back here if you use plugins)
+    
+    # AI Response
     with st.chat_message("assistant"):
         placeholder = st.empty()
         full_res = ""
